@@ -1,0 +1,106 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.3'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.0'
+    }
+}
+android {
+    compileSdkVersion 23
+    buildToolsVersion "24.0.0 rc1"
+
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+version = "1.0"
+group = "me.yourbay.basic"
+def gitUrl = 'git@github.com:hyongbai/LiteHttpPrj.git'
+def siteUrl = 'https://github.com/hyongbai/LiteHttpPrj'
+
+//
+install {
+    repositories.mavenInstaller {
+        pom {
+            project {
+                packaging 'aar'
+                name 'simple http loader'
+                url siteUrl
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'hyongbai'        //填写的一些基本信息
+                        name 'hyongbai'
+                        email 'hyongbai@gmail.com'
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+                }
+            }
+        }
+    }
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+// config bintray
+def bintrayFile = file("${System.getenv('enims_keys')}/bintray_prop")
+println(bintrayFile)
+bintray {
+    if (bintrayFile.exists()) {
+        Properties properties = new Properties()
+        properties.load(new FileInputStream(bintrayFile))
+        user = properties.getProperty("bintray.user")
+        key = properties.getProperty("bintray.apikey")
+        configurations = ['archives']
+        pkg {
+            repo = "maven"
+            name = "LiteHttpPrj"
+            websiteUrl = siteUrl
+            vcsUrl = gitUrl
+            licenses = ["Apache-2.0"]
+            publish = true
+        }
+    }
+}
