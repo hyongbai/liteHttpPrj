@@ -60,22 +60,22 @@ Get this via
 
 `Gradle`:
 ```groovy
-compile 'me.yourbay.tools:liteHttp:1.0.0.1'
+compile 'me.yourbay.basic:liteHttp:1.0'
 ```
 
 `Maven`:
 ```xml
 <dependency>
-  <groupId>me.yourbay.tools</groupId>
+  <groupId>me.yourbay.basic</groupId>
   <artifactId>liteHttp</artifactId>
-  <version>1.0.0.1</version>
+  <version>1.0</version>
   <type>pom</type>
 </dependency>
 ```
 
 `Ivy`:
 ```xml
-<dependency org='me.yourbay.tools' name='liteHttp' rev='1.0.0.1'>
+<dependency org='me.yourbay.basic' name='liteHttp' rev='1.0'>
   <artifact name='$AID' ext='pom'></artifact>
 </dependency>
 ```
