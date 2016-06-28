@@ -1,5 +1,6 @@
 package me.yourbay.litehttp;
 
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -12,9 +13,15 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 public class LiteHttp {
     private static boolean DEBUG = true;
@@ -22,6 +29,20 @@ public class LiteHttp {
     private final static int S_TIME_OUT = 30 * 1000;
     private final static int S_MAX_REPEAT_COUNT = 3;
     private final static int S_BUFF_SIZE = 16 * 1024;
+    /* TrustManager */
+    private static final TrustManager[] INSECURE_TRUST_MANAGER = new TrustManager[]{
+            new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                }
+
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                }
+            }
+    };
     /* string params */
     private final static String S_USER_AGENT = "Mozilla/5.0 (Linux; U; Android; en-ca;) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1";
     /* default headers */
@@ -46,6 +67,8 @@ public class LiteHttp {
         conn.setReadTimeout(S_TIME_OUT);
         conn.setDoInput(true);
         conn.setDoOutput(hasBody);
+            /* ssl */
+        setSSL(conn);
             /* method */
         conn.setRequestMethod(method);
             /* headers */
@@ -59,6 +82,21 @@ public class LiteHttp {
             conn.disconnect();
         }
         return conn;
+    }
+
+    private static final void setSSL(URLConnection conn) {
+        if (!(conn instanceof HttpsURLConnection)) {
+            return;
+        }
+        try {
+            HttpsURLConnection https = (HttpsURLConnection) conn;
+            final String protocol = Build.VERSION.SDK_INT >= 16 ? "TLSv1.2" : "TLS";
+            SSLContext sslContext = SSLContext.getInstance(protocol, "AndroidOpenSSL");
+            sslContext.init(null, INSECURE_TRUST_MANAGER, new java.security.SecureRandom());
+            https.setSSLSocketFactory(sslContext.getSocketFactory());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static boolean setHeader(URLConnection conn, Map<String, String> header) {
